@@ -1,0 +1,22 @@
+{
+  "name": "scrascii",
+  "version": "0.1.0",
+  "description": "",
+  "keywords": [],
+  "license": "MPL-2.0",
+  "author": "OmniBlocks",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "fmt": "oxfmt -c oxfmt.config.js",
+    "fmt:check": "oxfmt -c oxfmt.config.js --check"
+  },
+  "dependencies": {
+    "consola": "^3.4.2",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.60.0"
+  },
+  "packageManager": "pnpm@11.17.0"
+}
