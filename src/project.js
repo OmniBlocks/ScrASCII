@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises'
 
 import Storage from 'scratch-storage'
 import VirtualMachine from 'scratch-vm'
+import AudioEngine from 'scratch-audio'
+import { AudioContext } from 'node-web-audio-api'
 
 import { NodeBitmapAdapter } from './bitmap-adapter.js'
 import { TerminalRenderer } from './renderer.js'
@@ -11,13 +13,21 @@ import { TerminalRenderer } from './renderer.js'
 export const STAGE_WIDTH = 480
 export const STAGE_HEIGHT = 360
 
-export function createVm({ pixelWidth = STAGE_WIDTH, pixelHeight = STAGE_HEIGHT } = {}) {
+export function createVm({
+  pixelWidth = STAGE_WIDTH,
+  pixelHeight = STAGE_HEIGHT,
+  mute = false,
+} = {}) {
   const vm = new VirtualMachine()
   const renderer = new TerminalRenderer({ width: pixelWidth, height: pixelHeight })
 
   vm.attachStorage(new Storage())
   vm.attachV2BitmapAdapter(new NodeBitmapAdapter())
   vm.attachRenderer(renderer)
+
+  if (!mute) {
+    vm.attachAudioEngine(new AudioEngine(new AudioContext()))
+  }
 
   return { vm, renderer }
 }

@@ -111,5 +111,14 @@ if (typeof globalThis.document === 'undefined') {
       if (tagName === 'canvas') return new NodeCanvas()
       return {}
     },
+    body: { addEventListener() {}, removeEventListener() {} },
   }
+}
+
+// shims
+if (typeof globalThis.NodeList === 'undefined') {
+  globalThis.NodeList = class NodeList {}
+}
+if (typeof globalThis.Element === 'undefined') {
+  globalThis.Element = class Element {}
 }

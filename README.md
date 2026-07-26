@@ -7,6 +7,7 @@ An ASCII Scratch renderer; for the terminal!
 - ASCII renderer
 - Unicode half-block renderer
 - ANSI and True Color support!
+- Sound playback through your speakers, via [node-web-audio-api](https://github.com/ircam-ismm/node-web-audio-api)
 - Runs local `.sb3` projects with [scratch-vm](https://github.com/OmniBlocks/monorepo/tree/main/scratch-vm)
 
 ## Usage
@@ -16,9 +17,9 @@ node src/index.js path/to/project.sb3
 node src/index.js --demo
 ```
 
-Run `node src/index.js --help` for rendering and playback options.
+Run `node src/index.js --help` for rendering and playback options. Pass `--mute` to disable audio.
 
-Extensions, pen, and sound are not rendered.
+Extensions and pen are not rendered.
 
 # License
 

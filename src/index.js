@@ -75,11 +75,11 @@ function runDemo({ columns, rows, mode }) {
   process.stdout.write(`${output}\n`)
 }
 
-async function runProject(projectPath, { columns, rows, mode, fps, duration }) {
+async function runProject(projectPath, { columns, rows, mode, fps, duration, mute }) {
   // Deferred
   const { createVm, loadProjectFile } = await import('./project.js')
 
-  const { vm, renderer } = createVm({ pixelWidth: STAGE_WIDTH, pixelHeight: STAGE_HEIGHT })
+  const { vm, renderer } = createVm({ pixelWidth: STAGE_WIDTH, pixelHeight: STAGE_HEIGHT, mute })
 
   const captions = new Map()
   vm.runtime.on('SAY', (target, type, text) => {
@@ -109,6 +109,7 @@ async function runProject(projectPath, { columns, rows, mode, fps, duration }) {
     clearInterval(timer)
     vm.stopAll()
     vm.quit()
+    vm.runtime.audioEngine?.audioContext.close()
     process.stdout.write(`${SHOW_CURSOR}\n`)
     process.exit(0)
   }
@@ -169,6 +170,11 @@ const argv = yargs(hideBin(process.argv))
   .option('duration', {
     type: 'number',
     describe: 'stop after this many seconds (default: run until Ctrl+C)',
+  })
+  .option('mute', {
+    type: 'boolean',
+    default: false,
+    describe: 'disable audio playback',
   })
   .help()
   .parse()
