@@ -12,6 +12,8 @@ An ASCII Scratch renderer; for the terminal!
 - ANSI and True Color support!
 - Sound playback through your speakers, via [node-web-audio-api](https://github.com/ircam-ismm/node-web-audio-api)
 - Runs local `.sb3` projects with [scratch-vm](https://github.com/OmniBlocks/monorepo/tree/main/scratch-vm)
+- Mouse support: click sprites/the stage, and drag draggable sprites, right in the terminal. On terminals that don't support mouse reporting, arrow keys move a virtual cursor (space/enter to click, tab to grab/drop)
+- Keyboard support: type to drive "when [key] key pressed" hats and "key [key] pressed?" checks. Terminals only report key-down, so a key is treated as released after a short pause with no repeats
 
 ## Usage
 
@@ -20,7 +22,7 @@ node src/index.js path/to/project.sb3
 node src/index.js --demo
 ```
 
-Run `node src/index.js --help` for rendering and playback options. Pass `--mute` to disable audio.
+Run `node src/index.js --help` for rendering and playback options. Pass `--mute` to disable audio, or `--no-mouse` to disable mouse/virtual-cursor input entirely.
 
 Extensions and pen are not rendered.
 

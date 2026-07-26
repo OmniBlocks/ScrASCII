@@ -12,6 +12,33 @@ function bandBounds(index, count, size) {
   return [start, end]
 }
 
+/**
+ * Inverse of the column/row mapping
+ */
+export function cellToPixel(col, row, { columns, rows, mode, width, height }) {
+  const [x0, x1] = bandBounds(col, columns, width)
+  const x = (x0 + x1) / 2
+
+  if (mode.startsWith('unicode')) {
+    const subRows = rows * 2
+    const [yTop0] = bandBounds(row * 2, subRows, height)
+    const [, yBottom1] = bandBounds(row * 2 + 1, subRows, height)
+    return [x, (yTop0 + yBottom1) / 2]
+  }
+
+  const [y0, y1] = bandBounds(row, rows, height)
+  return [x, (y0 + y1) / 2]
+}
+
+/**
+ * Rough inverse of cellToPixel, for positioning a virtual cursor glyph.
+ */
+export function pixelToCell(x, y, { columns, rows, width, height }) {
+  const col = Math.min(columns - 1, Math.max(0, Math.floor((x / width) * columns)))
+  const row = Math.min(rows - 1, Math.max(0, Math.floor((y / height) * rows)))
+  return [col, row]
+}
+
 function averageRegion(rgba, width, x0, x1, y0, y1) {
   let r = 0
   let g = 0

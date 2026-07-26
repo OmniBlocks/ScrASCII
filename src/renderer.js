@@ -203,19 +203,61 @@ export class TerminalRenderer {
 
   draw() {}
 
-  pick() {
+  pick(x, y) {
+    for (let i = this.drawOrder.length - 1; i >= 0; i--) {
+      const id = this.drawOrder[i]
+      const drawable = this.drawables.get(id)
+      const skin = drawable && this.skins.get(drawable.skinId)
+      if (!drawable?.visible || !skin || skin.type !== 'bitmap') continue
+      if (this.#sampleAlpha(drawable, skin, x, y) > 0) return id
+    }
     return null
   }
 
-  drawableTouching() {
-    return false
+  drawableTouching(id, x, y) {
+    const drawable = this.drawables.get(id)
+    const skin = drawable && this.skins.get(drawable.skinId)
+    if (!drawable?.visible || !skin || skin.type !== 'bitmap') return false
+    return this.#sampleAlpha(drawable, skin, x, y) > 0
   }
 
   isTouchingColor() {
     return false
   }
 
-  isTouchingDrawables() {
+  isTouchingDrawables(drawableId, candidateIds = this.drawOrder) {
+    const drawable = this.drawables.get(drawableId)
+    const skin = drawable && this.skins.get(drawable.skinId)
+    if (!drawable?.visible || !skin || skin.type !== 'bitmap') return false
+
+    for (const candidateId of candidateIds) {
+      const candidate = this.drawables.get(candidateId)
+      const candidateSkin = candidate && this.skins.get(candidate.skinId)
+      if (!candidate?.visible || !candidateSkin || candidateSkin.type !== 'bitmap') continue
+      if (this.#drawablesOverlap(drawable, skin, candidate, candidateSkin)) return true
+    }
+    return false
+  }
+
+  #drawablesOverlap(drawableA, skinA, drawableB, skinB) {
+    const a = this.#skinGeometry(drawableA, skinA)
+    const b = this.#skinGeometry(drawableB, skinB)
+
+    const left = Math.max(a.left, b.left, 0)
+    const right = Math.min(a.left + a.outputWidth, b.left + b.outputWidth, this.width)
+    const top = Math.max(a.top, b.top, 0)
+    const bottom = Math.min(a.top + a.outputHeight, b.top + b.outputHeight, this.height)
+
+    for (let y = top; y < bottom; y++) {
+      for (let x = left; x < right; x++) {
+        if (
+          this.#sampleAlpha(drawableA, skinA, x, y) > 0 &&
+          this.#sampleAlpha(drawableB, skinB, x, y) > 0
+        ) {
+          return true
+        }
+      }
+    }
     return false
   }
 
@@ -241,7 +283,8 @@ export class TerminalRenderer {
     return frame
   }
 
-  #blitSkin(frame, drawable, skin) {
+  #skinGeometry(drawable, skin) {
+    const flipX = drawable.scale[0] < 0
     const scaleX = Math.abs(drawable.scale[0]) / 100
     const scaleY = Math.abs(drawable.scale[1]) / 100
 
@@ -253,11 +296,37 @@ export class TerminalRenderer {
     const outputHeight = Math.max(1, Math.round(skin.height * scaleY * stageScaleY))
 
     // Scratch (0, 0) is stage center; terminal pixels begin top-left.
-    const centerX = Math.round(((drawable.x + 240) / 480) * this.width)
-    const centerY = Math.round(((180 - drawable.y) / 360) * this.height)
+    const originX = ((drawable.x + 240) / 480) * this.width
+    const originY = ((180 - drawable.y) / 360) * this.height
 
-    const left = centerX - Math.floor(outputWidth / 2)
-    const top = centerY - Math.floor(outputHeight / 2)
+    // drawable.x/y anchors the skin's rotation center, which usually isn't
+    // its geometric middle (e.g. a costume's feet, or an off-center prop),
+    // so offset by how far that point sits from the image's own edges.
+    const rotationOffsetX = skin.rotationCenter[0] * scaleX * stageScaleX
+    const rotationOffsetY = skin.rotationCenter[1] * scaleY * stageScaleY
+
+    const left = Math.round(originX - (flipX ? outputWidth - rotationOffsetX : rotationOffsetX))
+    const top = Math.round(originY - rotationOffsetY)
+
+    return { outputWidth, outputHeight, left, top, flipX }
+  }
+
+  #sampleAlpha(drawable, skin, x, y) {
+    const { outputWidth, outputHeight, left, top, flipX } = this.#skinGeometry(drawable, skin)
+
+    const dx = Math.round(x) - left
+    const dy = Math.round(y) - top
+    if (dx < 0 || dx >= outputWidth || dy < 0 || dy >= outputHeight) return 0
+
+    let sx = Math.min(skin.sourceWidth - 1, Math.floor((dx / outputWidth) * skin.sourceWidth))
+    if (flipX) sx = skin.sourceWidth - 1 - sx
+    const sy = Math.min(skin.sourceHeight - 1, Math.floor((dy / outputHeight) * skin.sourceHeight))
+
+    return skin.pixels[(sy * skin.sourceWidth + sx) * 4 + 3]
+  }
+
+  #blitSkin(frame, drawable, skin) {
+    const { outputWidth, outputHeight, left, top, flipX } = this.#skinGeometry(drawable, skin)
 
     for (let dy = 0; dy < outputHeight; dy++) {
       const y = top + dy
@@ -272,7 +341,8 @@ export class TerminalRenderer {
         const x = left + dx
         if (x < 0 || x >= this.width) continue
 
-        const sx = Math.min(skin.sourceWidth - 1, Math.floor((dx / outputWidth) * skin.sourceWidth))
+        let sx = Math.min(skin.sourceWidth - 1, Math.floor((dx / outputWidth) * skin.sourceWidth))
+        if (flipX) sx = skin.sourceWidth - 1 - sx
 
         const sourceOffset = (sy * skin.sourceWidth + sx) * 4
         const destinationOffset = (y * this.width + x) * 4
