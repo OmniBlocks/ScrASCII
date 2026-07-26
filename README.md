@@ -10,8 +10,10 @@ An ASCII Scratch renderer; for the terminal!
 - ASCII renderer
 - Unicode half-block renderer
 - ANSI and True Color support!
-- Sound playback through your speakers, via [node-web-audio-api](https://github.com/ircam-ismm/node-web-audio-api)
-- Runs local `.sb3` projects with [scratch-vm](https://github.com/OmniBlocks/monorepo/tree/main/scratch-vm)
+- Sound playback through your speakers, via
+  [node-web-audio-api](https://github.com/ircam-ismm/node-web-audio-api)
+- Runs local `.sb3` projects with
+  [scratch-vm](https://github.com/OmniBlocks/monorepo/tree/main/scratch-vm)
 
 ## Usage
 
