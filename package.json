@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "consola": "^3.4.2",
+    "scratch-vm": "link:../monorepo/scratch-vm",
     "yargs": "^18.0.0"
   },
   "devDependencies": {

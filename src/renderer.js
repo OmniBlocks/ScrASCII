@@ -1,19 +1,19 @@
 export class TerminalRenderer {
-  constructor({width, height}) {
+  constructor({ width, height }) {
     // pixel resolution
-    this.width = width;
-    this.height = height;
+    this.width = width
+    this.height = height
 
-    this.nextDrawableId = 0;
-    this.nextSkinId = 0;
+    this.nextDrawableId = 0
+    this.nextSkinId = 0
 
-    this.drawables = new Map();
-    this.skins = new Map();
-    this.drawOrder = [];
+    this.drawables = new Map()
+    this.skins = new Map()
+    this.drawOrder = []
   }
 
   createDrawable(layerGroup) {
-    const id = this.nextDrawableId++;
+    const id = this.nextDrawableId++
 
     this.drawables.set(id, {
       id,
@@ -24,219 +24,212 @@ export class TerminalRenderer {
       scale: [100, 100],
       visible: true,
       skinId: null,
-      effects: Object.create(null)
-    });
+      effects: Object.create(null),
+    })
 
-    this.drawOrder.push(id);
-    return id;
+    this.drawOrder.push(id)
+    return id
   }
 
   destroyDrawable(id) {
-    this.drawables.delete(id);
-    this.drawOrder = this.drawOrder.filter(drawableId => drawableId !== id);
+    this.drawables.delete(id)
+    this.drawOrder = this.drawOrder.filter((drawableId) => drawableId !== id)
   }
 
   createBitmapSkin(image, resolution = 1, rotationCenter) {
-    const id = this.nextSkinId++;
-    const center = rotationCenter ?? [image.width / 2, image.height / 2];
+    const id = this.nextSkinId++
+    const center = rotationCenter ?? [image.width / 2, image.height / 2]
 
     this.skins.set(id, {
-      type: "bitmap",
+      type: 'bitmap',
       width: image.width / resolution,
       height: image.height / resolution,
       sourceWidth: image.width,
       sourceHeight: image.height,
       pixels: image.data,
       resolution,
-      rotationCenter: center
-    });
+      rotationCenter: center,
+    })
 
-    return id;
+    return id
   }
 
   createSVGSkin(svgText, rotationCenter) {
     throw new Error(
-      "SVG costumes are not wired up yet. Rasterize SVG to RGBA in the " +
-      "Node costume loader, then call createBitmapSkin()."
-    );
+      'SVG costumes are not wired up yet. Rasterize SVG to RGBA in the ' +
+        'Node costume loader, then call createBitmapSkin().',
+    )
   }
 
   getSkinSize(skinId) {
-    const skin = this.skins.get(skinId);
-    return skin ? [skin.width, skin.height] : [0, 0];
+    const skin = this.skins.get(skinId)
+    return skin ? [skin.width, skin.height] : [0, 0]
   }
 
   getSkinRotationCenter(skinId) {
-    const skin = this.skins.get(skinId);
-    return skin ? skin.rotationCenter : [0, 0];
+    const skin = this.skins.get(skinId)
+    return skin ? skin.rotationCenter : [0, 0]
   }
 
   getCurrentSkinSize(drawableId) {
-    const drawable = this.drawables.get(drawableId);
-    return drawable?.skinId !== null
-      ? this.getSkinSize(drawable.skinId)
-      : [0, 0];
+    const drawable = this.drawables.get(drawableId)
+    return drawable?.skinId !== null ? this.getSkinSize(drawable.skinId) : [0, 0]
   }
 
   updateDrawablePosition(id, [x, y]) {
-    const drawable = this.drawables.get(id);
+    const drawable = this.drawables.get(id)
     if (drawable) {
-      drawable.x = x;
-      drawable.y = y;
+      drawable.x = x
+      drawable.y = y
     }
   }
 
   updateDrawableDirectionScale(id, direction, scale) {
-    const drawable = this.drawables.get(id);
+    const drawable = this.drawables.get(id)
     if (drawable) {
-      drawable.direction = direction;
-      drawable.scale = scale;
+      drawable.direction = direction
+      drawable.scale = scale
     }
   }
 
   updateDrawableVisible(id, visible) {
-    const drawable = this.drawables.get(id);
-    if (drawable) drawable.visible = visible;
+    const drawable = this.drawables.get(id)
+    if (drawable) drawable.visible = visible
   }
 
   updateDrawableSkinId(id, skinId) {
-    const drawable = this.drawables.get(id);
-    if (drawable) drawable.skinId = skinId;
+    const drawable = this.drawables.get(id)
+    if (drawable) drawable.skinId = skinId
   }
 
   updateDrawableEffect(id, effect, value) {
-    const drawable = this.drawables.get(id);
-    if (drawable) drawable.effects[effect] = value;
+    const drawable = this.drawables.get(id)
+    if (drawable) drawable.effects[effect] = value
   }
 
   getFencedPositionOfDrawable(_id, [x, y]) {
-    return [
-      Math.max(-240, Math.min(240, x)),
-      Math.max(-180, Math.min(180, y))
-    ];
+    return [Math.max(-240, Math.min(240, x)), Math.max(-180, Math.min(180, y))]
   }
 
   setDrawableOrder(id, order, _layerGroup, relative = false) {
-    const current = this.drawOrder.indexOf(id);
-    if (current === -1) return -1;
+    const current = this.drawOrder.indexOf(id)
+    if (current === -1) return -1
 
-    this.drawOrder.splice(current, 1);
+    this.drawOrder.splice(current, 1)
 
-    let nextIndex;
+    let nextIndex
     if (order === Infinity) {
-      nextIndex = this.drawOrder.length;
+      nextIndex = this.drawOrder.length
     } else if (order === -Infinity) {
-      nextIndex = 0;
+      nextIndex = 0
     } else if (relative) {
-      nextIndex = current + order;
+      nextIndex = current + order
     } else {
-      nextIndex = order;
+      nextIndex = order
     }
 
-    nextIndex = Math.max(0, Math.min(this.drawOrder.length, nextIndex));
-    this.drawOrder.splice(nextIndex, 0, id);
-    return nextIndex;
+    nextIndex = Math.max(0, Math.min(this.drawOrder.length, nextIndex))
+    this.drawOrder.splice(nextIndex, 0, id)
+    return nextIndex
   }
 
   getDrawableOrder(id) {
-    return this.drawOrder.indexOf(id);
+    return this.drawOrder.indexOf(id)
   }
 
   getBounds(id) {
-    const drawable = this.drawables.get(id);
-    const skin = drawable && this.skins.get(drawable.skinId);
-    if (!drawable || !skin) return null;
+    const drawable = this.drawables.get(id)
+    const skin = drawable && this.skins.get(drawable.skinId)
+    if (!drawable || !skin) return null
 
-    const scaleX = Math.abs(drawable.scale[0]) / 100;
-    const scaleY = Math.abs(drawable.scale[1]) / 100;
-    const width = skin.width * scaleX;
-    const height = skin.height * scaleY;
+    const scaleX = Math.abs(drawable.scale[0]) / 100
+    const scaleY = Math.abs(drawable.scale[1]) / 100
+    const width = skin.width * scaleX
+    const height = skin.height * scaleY
 
     return {
       left: drawable.x - width / 2,
       right: drawable.x + width / 2,
       bottom: drawable.y - height / 2,
-      top: drawable.y + height / 2
-    };
+      top: drawable.y + height / 2,
+    }
   }
 
   getBoundsForBubble(id) {
-    return this.getBounds(id);
+    return this.getBounds(id)
   }
 
   renderFrame(background = [255, 255, 255, 255]) {
-    const frame = new Uint8ClampedArray(this.width * this.height * 4);
+    const frame = new Uint8ClampedArray(this.width * this.height * 4)
 
     for (let i = 0; i < frame.length; i += 4) {
-      frame[i] = background[0];
-      frame[i + 1] = background[1];
-      frame[i + 2] = background[2];
-      frame[i + 3] = background[3];
+      frame[i] = background[0]
+      frame[i + 1] = background[1]
+      frame[i + 2] = background[2]
+      frame[i + 3] = background[3]
     }
 
     for (const drawableId of this.drawOrder) {
-      const drawable = this.drawables.get(drawableId);
-      const skin = drawable && this.skins.get(drawable.skinId);
+      const drawable = this.drawables.get(drawableId)
+      const skin = drawable && this.skins.get(drawable.skinId)
 
-      if (!drawable?.visible || !skin || skin.type !== "bitmap") continue;
+      if (!drawable?.visible || !skin || skin.type !== 'bitmap') continue
 
-      this.#blitSkin(frame, drawable, skin);
+      this.#blitSkin(frame, drawable, skin)
     }
 
-    return frame;
+    return frame
   }
 
   #blitSkin(frame, drawable, skin) {
-    const scaleX = Math.abs(drawable.scale[0]) / 100;
-    const scaleY = Math.abs(drawable.scale[1]) / 100;
+    const scaleX = Math.abs(drawable.scale[0]) / 100
+    const scaleY = Math.abs(drawable.scale[1]) / 100
 
-    const outputWidth = Math.max(1, Math.round(skin.width * scaleX));
-    const outputHeight = Math.max(1, Math.round(skin.height * scaleY));
+    // scale skins down to the terminal renderer's own framebuffer resolution.
+    const stageScaleX = this.width / 480
+    const stageScaleY = this.height / 360
 
-    // Scratch (0, 0) is stage centre; terminal pixels begin top-left.
-    const centerX = Math.round(((drawable.x + 240) / 480) * this.width);
-    const centerY = Math.round(((180 - drawable.y) / 360) * this.height);
+    const outputWidth = Math.max(1, Math.round(skin.width * scaleX * stageScaleX))
+    const outputHeight = Math.max(1, Math.round(skin.height * scaleY * stageScaleY))
 
-    const left = centerX - Math.floor(outputWidth / 2);
-    const top = centerY - Math.floor(outputHeight / 2);
+    // Scratch (0, 0) is stage center; terminal pixels begin top-left.
+    const centerX = Math.round(((drawable.x + 240) / 480) * this.width)
+    const centerY = Math.round(((180 - drawable.y) / 360) * this.height)
+
+    const left = centerX - Math.floor(outputWidth / 2)
+    const top = centerY - Math.floor(outputHeight / 2)
 
     for (let dy = 0; dy < outputHeight; dy++) {
-      const y = top + dy;
-      if (y < 0 || y >= this.height) continue;
+      const y = top + dy
+      if (y < 0 || y >= this.height) continue
 
       const sy = Math.min(
         skin.sourceHeight - 1,
-        Math.floor((dy / outputHeight) * skin.sourceHeight)
-      );
+        Math.floor((dy / outputHeight) * skin.sourceHeight),
+      )
 
       for (let dx = 0; dx < outputWidth; dx++) {
-        const x = left + dx;
-        if (x < 0 || x >= this.width) continue;
+        const x = left + dx
+        if (x < 0 || x >= this.width) continue
 
-        const sx = Math.min(
-          skin.sourceWidth - 1,
-          Math.floor((dx / outputWidth) * skin.sourceWidth)
-        );
+        const sx = Math.min(skin.sourceWidth - 1, Math.floor((dx / outputWidth) * skin.sourceWidth))
 
-        const sourceOffset = (sy * skin.sourceWidth + sx) * 4;
-        const destinationOffset = (y * this.width + x) * 4;
+        const sourceOffset = (sy * skin.sourceWidth + sx) * 4
+        const destinationOffset = (y * this.width + x) * 4
 
-        const alpha = skin.pixels[sourceOffset + 3] / 255;
-        if (alpha === 0) continue;
+        const alpha = skin.pixels[sourceOffset + 3] / 255
+        if (alpha === 0) continue
 
         frame[destinationOffset] = Math.round(
-          skin.pixels[sourceOffset] * alpha +
-          frame[destinationOffset] * (1 - alpha)
-        );
+          skin.pixels[sourceOffset] * alpha + frame[destinationOffset] * (1 - alpha),
+        )
         frame[destinationOffset + 1] = Math.round(
-          skin.pixels[sourceOffset + 1] * alpha +
-          frame[destinationOffset + 1] * (1 - alpha)
-        );
+          skin.pixels[sourceOffset + 1] * alpha + frame[destinationOffset + 1] * (1 - alpha),
+        )
         frame[destinationOffset + 2] = Math.round(
-          skin.pixels[sourceOffset + 2] * alpha +
-          frame[destinationOffset + 2] * (1 - alpha)
-        );
-        frame[destinationOffset + 3] = 255;
+          skin.pixels[sourceOffset + 2] * alpha + frame[destinationOffset + 2] * (1 - alpha),
+        )
+        frame[destinationOffset + 3] = 255
       }
     }
   }
