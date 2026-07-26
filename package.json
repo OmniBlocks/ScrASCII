@@ -12,7 +12,11 @@
     "fmt:check": "oxfmt -c oxfmt.config.js --check"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "consola": "^3.4.2",
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0",
+    "scratch-storage": "2.3.1",
     "scratch-vm": "link:../monorepo/scratch-vm",
     "yargs": "^18.0.0"
   },

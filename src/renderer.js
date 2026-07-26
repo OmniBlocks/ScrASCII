@@ -1,3 +1,5 @@
+import { Resvg } from '@resvg/resvg-js'
+
 export class TerminalRenderer {
   constructor({ width, height }) {
     // pixel resolution
@@ -55,10 +57,40 @@ export class TerminalRenderer {
   }
 
   createSVGSkin(svgText, rotationCenter) {
-    throw new Error(
-      'SVG costumes are not wired up yet. Rasterize SVG to RGBA in the ' +
-        'Node costume loader, then call createBitmapSkin().',
-    )
+    const resvg = new Resvg(svgText, { fitTo: { mode: 'original' } })
+    const rendered = resvg.render()
+    const { width, height } = rendered
+    const pixels = rendered.pixels
+    const data = new Uint8ClampedArray(pixels.buffer, pixels.byteOffset, pixels.byteLength)
+
+    return this.createBitmapSkin({ width, height, data }, 1, rotationCenter)
+  }
+
+  createTextSkin(type, text, onSpriteRight) {
+    const id = this.nextSkinId++
+    this.skins.set(id, {
+      type: 'text',
+      width: 0,
+      height: 0,
+      rotationCenter: [0, 0],
+      bubbleType: type,
+      text,
+      onSpriteRight,
+    })
+    return id
+  }
+
+  updateTextSkin(skinId, type, text, onSpriteRight) {
+    const skin = this.skins.get(skinId)
+    if (skin) {
+      skin.bubbleType = type
+      skin.text = text
+      skin.onSpriteRight = onSpriteRight
+    }
+  }
+
+  destroySkin(skinId) {
+    this.skins.delete(skinId)
   }
 
   getSkinSize(skinId) {
@@ -157,6 +189,34 @@ export class TerminalRenderer {
 
   getBoundsForBubble(id) {
     return this.getBounds(id)
+  }
+
+  getNativeSize() {
+    return [480, 360]
+  }
+
+  setStageSize() {}
+
+  setUseHighQualityRender() {}
+
+  setLayerGroupOrdering() {}
+
+  draw() {}
+
+  pick() {
+    return null
+  }
+
+  drawableTouching() {
+    return false
+  }
+
+  isTouchingColor() {
+    return false
+  }
+
+  isTouchingDrawables() {
+    return false
   }
 
   renderFrame(background = [255, 255, 255, 255]) {
