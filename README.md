@@ -3,6 +3,7 @@
 An ASCII Scratch renderer; for the terminal!
 
 <img width="1675" height="845" alt="Screenshot_20260726_042821" src="https://github.com/user-attachments/assets/5ecd264e-b946-46ae-ad52-0f86c8ccbf0e" />
+<sup>This image symbolizes the utter stupidity of the Scratch community /j</sup>
 
 ## Features
 
